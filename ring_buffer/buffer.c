@@ -2,30 +2,34 @@
 
 void ring_init(rb_buf_t *rb)
 {
-    rb->head = 0;
-    rb->tail = 0;
+    atomic_store_explicit(&rb->head, 0, memory_order_relaxed);
+    atomic_store_explicit(&rb->tail, 0, memory_order_relaxed);
 }
 
 bool ring_push(rb_buf_t *rb, uint32_t n)
 {
+    uint32_t head = atomic_load_explicit(&rb->head, memory_order_acquire);
+    uint32_t tail = atomic_load_explicit(&rb->tail, memory_order_acquire);
     // does moving the head forward land on the tail
-    if (((rb->head + 1) % RING_CAPACITY) == rb->tail)
+    if (((head + 1) % RING_CAPACITY) == tail)
     {
         return false;
     }
     // write then advance
-    rb->data[rb->head] = n;
-    rb->head = (rb->head + 1) % RING_CAPACITY;
+    rb->data[head] = n;
+    atomic_store_explicit(&rb->head, (head + 1) % RING_CAPACITY, memory_order_release);
     return true;
 }
 
-uint32_t ring_pop(rb_buf_t *rb)
+bool ring_pop(rb_buf_t *rb, uint32_t *out)
 {
-    if (rb->head == rb->tail)
+    uint32_t head = atomic_load_explicit(&rb->head, memory_order_acquire);
+    uint32_t tail = atomic_load_explicit(&rb->tail, memory_order_acquire);
+    if (head == tail)
     {
-        return 0;
+        return false;
     }
-    uint32_t result = rb->data[rb->tail];
-    rb->tail = (rb->tail + 1) % RING_CAPACITY;
-    return result;
+    *out = rb->data[tail];
+    atomic_store_explicit(&rb->tail, (tail + 1) % RING_CAPACITY, memory_order_release);
+    return true;
 }
