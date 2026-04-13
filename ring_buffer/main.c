@@ -19,13 +19,18 @@ void *reader(void *arg)
 {
     rb_buf_t *rb = (rb_buf_t *)arg;
     uint32_t val;
+    bool pass = true;
     for (int i = 0; i < 49; i++)
     {
         while (!ring_pop(rb, &val))
             sched_yield();
 
-        printf("%d\n", val);
+        if (val != i)
+        {
+            pass = false;
+        }
     }
+    printf("%s", pass ? "PASS" : "FAIL");
     return NULL;
 }
 
