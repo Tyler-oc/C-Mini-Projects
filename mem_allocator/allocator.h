@@ -10,10 +10,10 @@ typedef struct
     bool free;
 } header;
 
-void heap_init(header *head);
+void heap_init();
 
 void *my_malloc(size_t n);
 
-void *my_free(void *ptr);
+void my_free(void *ptr);
 
-void head_dump();
+void heap_dump();
