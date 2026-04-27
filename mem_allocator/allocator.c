@@ -19,8 +19,20 @@ void *my_malloc(size_t n)
     {
         if (curr->free && curr->size >= n)
         {
+            bool split = false;
+            if (curr->size >= n + sizeof(header) + 1)
+            {
+                size_t remaining = curr->size - n - sizeof(header);
+                header *next = (header *)((uint8_t *)curr + n + sizeof(header));
+                next->size = remaining;
+                next->free = true;
+                split = true;
+            }
             curr->free = false;
-            curr->size = n;
+            if (split)
+            {
+                curr->size = n;
+            }
             return (uint8_t *)curr + sizeof(header);
         }
         size_t next_pos = pos + curr->size + sizeof(header);
