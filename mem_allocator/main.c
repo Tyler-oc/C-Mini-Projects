@@ -10,6 +10,7 @@ int main()
     void *c = my_malloc(5);
     heap_dump();
     printf("Got to first dump");
+    my_free(c);
     my_free(b);
     heap_dump();
     printf("Got to free");

@@ -46,6 +46,13 @@ void my_free(void *ptr)
 {
     header *curr = (header *)((uint8_t *)ptr - sizeof(header));
     curr->free = true;
+    header *next = (header *)((uint8_t *)curr + sizeof(header));
+    uint8_t *heap_end = heap + HEAP_SIZE;
+    while ((uint8_t *)next < heap_end && next->free)
+    {
+        curr->size += next->size + sizeof(header);
+        next = (header *)((uint8_t *)next + sizeof(header));
+    }
 }
 
 void heap_dump(void)
